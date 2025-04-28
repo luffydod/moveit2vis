@@ -1,12 +1,20 @@
-# 安装python第三方库
+# moveit2vs
+
+## 安装python依赖
+
+```bash
 apt install python3-pip -y
+
 pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+
 # pip install pyside6 xacro ultralytics --break-system-packages
+
 pip install pyside6 xacro ultralytics NodeGraphQt --break-system-packages
+
 pip install -U colcon-common-extensions vcstool --break-system-packages
 ```
 
-# 运行测试(Run test)
+## Run
 
 ```shell
 # Shell A
