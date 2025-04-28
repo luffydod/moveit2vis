@@ -1,0 +1,6 @@
+*.pyc
+logs
+
+__pycache__
+
+ui_controller/logs
