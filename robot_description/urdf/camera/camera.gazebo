@@ -47,7 +47,6 @@
         </noise>
       </camera>
       <topic>/camera/depth/image_raw</topic>
-      <topic>/camera/depth/points</topic>
     </sensor>
   </gazebo>
   </xacro:macro>
