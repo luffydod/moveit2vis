@@ -149,9 +149,7 @@ def generate_launch_description():
         package='ros_gz_bridge',
         executable='parameter_bridge',
         arguments=[
-            # '/camera/rgb/image_raw@sensor_msgs/msg/Image@gz.msgs.Image',
-            '/camera/depth/image_raw@sensor_msgs/msg/Image@gz.msgs.Image',
-            '/camera/depth/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloud2'
+            '/camera/depth/image_raw@sensor_msgs/msg/Image@gz.msgs.Image'
         ],
         output='screen'
     )
