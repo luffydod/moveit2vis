@@ -3,7 +3,7 @@
 
   <!-- Include EPick Body and helper macros -->
   <xacro:include filename="epick_body.xacro"/>
-  <xacro:include filename="$(find robot_description)/urdf/epick_driver_ros2_control.xacro" />
+  <!-- <xacro:include filename="$(find robot_description)/urdf/epick_driver_ros2_control.xacro" /> -->
 
   <!-- Robotiq EPick + Suction Cup with optional extension
 
@@ -38,11 +38,11 @@
                        use_fake_hardware:=true
                        usb_port:=/dev/ttyUSB0">
 
-    <xacro:epick_driver_ros2_control
+    <!-- <xacro:epick_driver_ros2_control
       name="epick_driver_ros2_control"
       use_fake_hardware="${use_fake_hardware}"
       usb_port="${usb_port}"
-    />
+    /> -->
 
     <!-- Body -->
     <!-- inherits prefix, parent and origin_*, exposes body_link, body_length, body_color -->

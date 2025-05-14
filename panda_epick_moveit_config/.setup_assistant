@@ -1,0 +1,25 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: robot_description
+    relative_path: urdf/panda_epick.urdf.xacro
+  srdf:
+    relative_path: config/panda_epick.srdf
+  package_settings:
+    author_name: dod
+    author_email: 319377758@qq.com
+    generated_timestamp: 1746862360
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity

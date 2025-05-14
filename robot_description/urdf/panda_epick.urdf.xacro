@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot name="panda_epick" xmlns:xacro="http://www.ros.org/wiki/xacro">
+<robot name="panda_epick0" xmlns:xacro="http://www.ros.org/wiki/xacro">
   <link name="world"/>
     <joint name="connect_root_and_world" type="fixed">
       <child link="panda_link0" />
@@ -209,6 +209,12 @@
 
   <xacro:include filename="$(find robot_description)/urdf/epick_single_suction_cup.xacro"/>
 
-  <xacro:epick_single_suction_cup parent="panda_link8" use_fake_hardware="false"/>
+  <xacro:epick_single_suction_cup parent="panda_link8" 
+    use_fake_hardware="true"
+    extension_length="0.02"
+    extension_radius="0.02"
+    suction_cup_height="0.015"
+    suction_cup_radius="0.012"
+    tcp_stroke_compensation="0.0"/>
 
 </robot>
