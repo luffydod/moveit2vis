@@ -2,8 +2,10 @@ import os
 import xacro
 from pathlib import Path
 from ament_index_python.packages import get_package_share_directory
+import yaml
 
 from launch import LaunchDescription
+from launch.substitutions import PathJoinSubstitution
 from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription
 from launch.actions import RegisterEventHandler, SetEnvironmentVariable
 from launch.event_handlers import OnProcessExit
@@ -32,6 +34,15 @@ def generate_launch_description():
             str(Path(robot_description_path).parent.resolve())
             ]
         )
+
+    # Load the ROS2 control parameters from the YAML file
+    ros2_control_params_file = os.path.join(arm_robot_sim_path, 'config', 'ros2_controllers.yaml')
+    ros2_control_params = {"use_sim_time": True}
+    
+    with open(ros2_control_params_file, 'r') as file:
+        ros2_control_params.update(yaml.safe_load(file))
+
+    ros_namespace = LaunchConfiguration('ros_namespace', default='')
 
     arguments = LaunchDescription([
                 DeclareLaunchArgument('world', default_value='arm_on_the_table',
@@ -87,7 +98,7 @@ def generate_launch_description():
     # .robot_description_kinematics(file_path="config/kinematics.yaml")
 
     rviz_config_file = os.path.join(
-        get_package_share_directory("panda_moveit_config"),
+        arm_robot_sim_path,
         "rviz",
         "motion_planning.rviz",
     )
@@ -125,7 +136,7 @@ def generate_launch_description():
     )
 
     # Bridge
-    bridge = Node(
+    img_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
         arguments=['/image_raw@sensor_msgs/msg/Image@gz.msgs.Image'], 
@@ -148,19 +159,63 @@ def generate_launch_description():
         output='screen'
     )
 
-    load_controllers = []
+    # ros2 control node
+    ros2_control_node = Node(
+        package='controller_manager',
+        executable='ros2_control_node',
+        parameters=[
+            moveit_config.robot_description,
+            ros2_control_params,
+        ],
+        output='screen',
+    )
+    joint_state_broadcaster = Node(
+        package='controller_manager',
+        executable='spawner',
+        output='screen',
+        arguments=[
+            'joint_state_broadcaster',
+            '--controller-manager', '{}/controller_manager'.format(ros_namespace)
+        ],
+    )
+
+    # Load controllers
+    controller_nodes = []
+    controller_manager_arg = PathJoinSubstitution([
+        ros_namespace,  # 确保已声明此Launch参数
+        'controller_manager'
+    ])
     for controller in [
         "panda_arm_controller",
         "epick_gripper_controller",
-        "joint_state_broadcaster",
     ]:
-        load_controllers += [
-            ExecuteProcess(
-                cmd=["ros2 run controller_manager spawner {}".format(controller)],
-                shell=True,
-                output="log",
-            )
-        ]
+        controller_nodes.append(Node(
+            package='controller_manager',
+            executable='spawner',
+            output='screen',
+            arguments=[
+                controller,
+                '--controller-manager',
+                controller_manager_arg
+            ],
+        ))
+    
+    # Load  ExecuteTaskSolutionCapability so we can execute found solutions in simulation
+    move_group_capabilities = {
+        "capabilities": "move_group/ExecuteTaskSolutionCapability"
+    }
+
+    # Start the actual move_group node/action server
+    run_move_group_node = Node(
+        package="moveit_ros_move_group",
+        executable="move_group",
+        output="screen",
+        parameters=[
+            moveit_config.to_dict(),
+            move_group_capabilities,
+            {"use_sim_time": True},
+        ],
+    )
 
     return LaunchDescription(
         [
@@ -170,9 +225,13 @@ def generate_launch_description():
             gz_spawn_entity,
             robot_state_publisher,
             # bridge,
-            # depth_bridge,
+            img_bridge,
+            depth_bridge,
             clock_bridge,
             # rviz_node,
-            static_tf,
-        ] + load_controllers
+            # static_tf,
+            run_move_group_node,
+            ros2_control_node,
+            joint_state_broadcaster,
+        ] + controller_nodes
     )

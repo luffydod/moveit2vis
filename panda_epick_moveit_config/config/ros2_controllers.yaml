@@ -8,8 +8,8 @@ controller_manager:
 
 
     epick_gripper_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
-
+      # type: joint_trajectory_controller/JointTrajectoryController
+      type: position_controllers/GripperActionController
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
