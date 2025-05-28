@@ -194,12 +194,19 @@ class GUI(QDialog):
                 self.scene.addPolygon(qpoly, QPen(QColor(255,0,0,255)), QBrush(QColor(255,0,0,100)))   
 
                 if self.scene.click_mouse:
-
+                    
                     self.target_point[0] = -self.z*(middle_point[1] - self.cy)/self.fy + self.init_x
                     self.target_point[1] = -self.z*(middle_point[0] - self.cx)/self.fx + self.init_y
                     dist1 = math.sqrt((points[0][0] - points[1][0])**2 + (points[0][1] - points[1][1])**2)
                     dist2 = math.sqrt((points[1][0] - points[2][0])**2 + (points[1][1] - points[2][1])**2)
                     
+                    # log
+                    self.messageSignal.emit("click mouse at: {},{}".format(self.scene.mouse_x, self.scene.mouse_y))
+                    self.messageSignal.emit("middle point: {},{}".format(middle_point[0], middle_point[1]))
+                    self.messageSignal.emit("z: {}".format(self.z))
+                    self.messageSignal.emit("points: {}".format(points))
+                    self.messageSignal.emit("target point: {},{}".format(self.target_point[0], self.target_point[1]))
+
                     if(dist1 > dist2):
                         denominator = points[0][0] - points[1][0]
                         if denominator == 0:
