@@ -67,7 +67,9 @@ class Controller(Node):
         self.panda_arm = self.panda.get_planning_component("panda_arm")
         self.panda_hand = self.panda.get_planning_component("hand")
         self.logger = get_logger("moveit_py.pose_goal")
-
+        self.logger.info("MoveItPy Controller initialized")
+        self.get_logger().info("MoveItPy Controller initialized2")
+        
         robot_model = self.panda.get_robot_model()
         self.robot_state = RobotState(robot_model)
 
@@ -112,6 +114,8 @@ class Controller(Node):
     def listener_callback(self, data):
 
         self.get_logger().info(f"{data}")
+
+        self.get_logger().info("Moving to initial position")
 
         self.move_to(data.data[0], data.data[1], self.height, 1.0, self.init_angle + data.data[2], 0.0, 0.0)
 
