@@ -79,7 +79,7 @@ class GUI(QDialog):
         self.ui.pushButton_Test.clicked.connect(self.my_test)
 
         self.brush = QBrush(QColor(255,255,255,255))
-        self.target_point = [0,0,0]
+        self.target_point = [0,0,0,0]
         self.fx = 253.93635749816895
         self.fy = 253.93635749816895
         self.cx = 320
@@ -169,8 +169,24 @@ class GUI(QDialog):
         for r in data.yolov8_inference:
 
             points = np.array(r.coordinates).astype(np.int32).reshape([4, 2])
+            #x1,y1,x2,y2=np.array(r.coordinates).astype(np.int32)
+            z=r.depth_value
+            #print(z)
+            '''
+            points=np.array([
+                (x1,y1),
+                (x2,y1),
+                (x2,y2),
+                (x1,y2)
+            ])
+            '''
+
             middle_point = np.sum(points, 0)/4
             dist = math.sqrt((self.scene.mouse_x - middle_point[0])**2 + (self.scene.mouse_y - middle_point[1])**2)
+            
+            #middle_point=np.array([(x1 + x2)/2,(y1 + y2)/2])
+            #dist=math.sqrt((self.scene.mouse_x - middle_point[0])**2 + (self.scene.mouse_y - middle_point[1])**2)
+
             qpoly = QPolygonF([QPointF(p[0], p[1]) for p in points])
 
             if dist < 15:
@@ -197,6 +213,10 @@ class GUI(QDialog):
                         else:
                             angle = math.atan2(points[1][1] - points[2][1], denominator)
 
+                    #rect = cv2.minAreaRect(points.astype(np.float32))
+                    #   angle=rect[2]
+                    #self.target_point[2]=math.radians(angle)
+                    self.target_point[3] = 0.7 - z
                     self.target_point[2] = math.pi/2 - angle
                     target_point_pub = Float64MultiArray(data=self.target_point)  
                     self.pub.publish(target_point_pub) 
