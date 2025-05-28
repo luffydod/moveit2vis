@@ -184,7 +184,7 @@ def generate_launch_description():
             robot_state_publisher,
             bridge,
             depth_bridge,
-            clock_bridge,
+            # clock_bridge,
             rviz_node,
             static_tf,
         ]

@@ -50,3 +50,13 @@ source install/setup.bash
 cd src/ui_controller/
 python3 main.py
 ```
+
+## Record
+
+1、qt相关启动错误
+`qt.qpa.plugin: Could not load the Qt platform plugin "wayland"`
+
+解决：
+```bash
+sudo apt install libxcb-*
+```
