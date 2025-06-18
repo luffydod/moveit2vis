@@ -1,0 +1,131 @@
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+from perception_interfaces.msg import Detection2DWithDepthArray
+from geometry_msgs.msg import PoseStamped, Point
+import numpy as np
+import math
+import tf2_ros
+import tf2_geometry_msgs
+from tf2_ros import TransformException
+from geometry_msgs.msg import TransformStamped
+
+NAME_SPACE = "/perception"
+
+class TargetPosePublisher(Node):
+    def __init__(self):
+        super().__init__('target_pose_publisher')
+        
+        # 创建订阅器，订阅检测结果话题
+        self.subscription = self.create_subscription(
+            Detection2DWithDepthArray,
+            f'{NAME_SPACE}/det_2d_d',
+            self.detection_callback,
+            10)
+        
+        # 创建发布器，发布目标位姿
+        self.target_pose_publisher = self.create_publisher(
+            PoseStamped,
+            f'{NAME_SPACE}/target_point',
+            10)
+        
+        # 相机内参 (需要根据实际相机参数调整)
+        self.fx = 253.93635749816895  # 焦距x
+        self.fy = 253.93635749816895  # 焦距y
+        self.cx = 320.0  # 光心x
+        self.cy = 240.0  # 光心y
+        
+        # 创建TF缓冲区和监听器
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
+        
+        self.camera_frame = "camera_norm_link"  # 相机坐标系
+        self.target_frame = "panda_link0"  # 目标坐标系（通常是机器人基座）
+        
+        self.get_logger().info('目标位姿发布节点已启动')
+
+    def detection_callback(self, msg):
+        """处理检测结果，提取3D位置并发布目标位姿"""
+        if not msg.detections:
+            self.get_logger().info('没有检测到目标')
+            return
+        
+        # 获取置信度最高的检测结果（通常是第一个）
+        detection = msg.detections[0]
+        
+        # 提取2D像素坐标和深度值
+        pixel_x = detection.detection.bbox.center.position.x
+        pixel_y = detection.detection.bbox.center.position.y
+        # 方向角度theta，这里假设是绕Z轴的旋转角度
+        theta = detection.detection.bbox.center.theta
+        
+        depth = detection.depth_center
+        
+        if math.isnan(depth) or depth <= 0:
+            self.get_logger().warn(f'无效的深度值: {depth}')
+            return
+        
+        # 步骤1: 将像素坐标转换为标准相机坐标系（Z轴指向前方，X轴向右，Y轴向下）
+        # 注意：像素坐标系原点在左上角，而相机坐标系原点在中心
+        x_std = (pixel_x - self.cx) * depth / self.fx  # 向右为正
+        y_std = (pixel_y - self.cy) * depth / self.fy  # 向下为正
+        z_std = depth                                   # 向前为正
+        
+        self.get_logger().info(f'标准相机坐标系: x={x_std:.3f}, y={y_std:.3f}, z={z_std:.3f}')
+        
+        # 步骤2：计算标准相机坐标系下的目标位姿
+        
+        # 创建目标位姿消息
+        target_pose = PoseStamped()
+        target_pose.header.stamp = self.get_clock().now().to_msg()
+        target_pose.header.frame_id = self.camera_frame
+        
+        # 设置位置
+        target_pose.pose.position.x = x_std
+        target_pose.pose.position.y = y_std
+        target_pose.pose.position.z = z_std
+        
+        # 计算四元数 - 根据theta角度构建绕z轴旋转的四元数
+        # 四元数表示为 [cos(theta/2), 0, 0, sin(theta/2)] 表示绕z轴旋转theta角度
+        target_pose.pose.orientation.w = math.cos(theta / 2)
+        target_pose.pose.orientation.x = 0.0
+        target_pose.pose.orientation.y = 0.0
+        target_pose.pose.orientation.z = math.sin(theta / 2)
+        
+        # 尝试将位姿从相机坐标系转换到目标坐标系(机器人基座)
+        try:
+            # 获取从相机坐标系到目标坐标系的变换
+            transform = self.tf_buffer.lookup_transform(
+                self.target_frame,           # 目标坐标系
+                self.camera_frame,           # 源坐标系
+                rclpy.time.Time(),           # 获取最新可用的变换
+                timeout=rclpy.duration.Duration(seconds=1.0))  # 超时时间
+            
+            # 使用tf2_geometry_msgs的do_transform_pose函数进行正确的坐标变换
+            t_pose = target_pose.pose
+            transformed_pose = PoseStamped()
+            transformed_pose.header.stamp = self.get_clock().now().to_msg()
+            transformed_pose.header.frame_id = self.target_frame
+            
+            transformed_pose.pose = tf2_geometry_msgs.do_transform_pose(t_pose, transform)
+            
+            # 发布转换后的目标位姿
+            self.target_pose_publisher.publish(transformed_pose)
+            
+            self.get_logger().info(f'目标坐标系下的位置: x={transformed_pose.pose.position.x:.3f}, ' +
+                                  f'y={transformed_pose.pose.position.y:.3f}, z={transformed_pose.pose.position.z:.3f}')
+            
+        except TransformException as ex:
+            self.get_logger().warn(f'无法获取坐标转换: {ex}')
+            # 如果转换失败，仍然发布相机坐标系下的位姿
+            self.target_pose_publisher.publish(target_pose)
+
+def main():
+    rclpy.init()
+    node = TargetPosePublisher()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
