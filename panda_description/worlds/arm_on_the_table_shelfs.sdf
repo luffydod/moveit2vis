@@ -1,0 +1,347 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="arm_and_table">
+    <scene>
+      <shadows>false</shadows>
+      <ambient>0.400000006 0.400000006 0.400000006 1</ambient>
+      <background>0.699999988 0.699999988 0.699999988 1</background>
+    </scene>
+
+    <gui>
+      <camera name="user_camera">
+        <pose>0.75 -0.75 1.4 0 0.29 2.21</pose>
+      </camera>
+    </gui>
+
+    <model name="table">
+      <static>true</static>
+      <include>
+        <uri>model://table</uri>
+      </include>
+      <pose>0.29 0 0 0 0 1.5708</pose>
+    </model>
+    
+    <model name="shelf">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>2 -1.5 0 0 0 0</pose>
+    </model>
+    
+    
+    <model name="middle_shelf">
+      <static>true</static>
+      <pose>1.4 -0.2 1.01 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1.25 2.5 0.0375</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1.25 2.5 0.0375</size>
+            </box>
+          </geometry>
+          <material>
+              <ambient>1 1 1 1</ambient>
+              <diffuse>1 1 1 1</diffuse>
+              <specular>1 1 1 1</specular>
+              <emissive>0 0 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+    
+    <model name="shelf_0">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>-1.8343919515609741 -2.8230617046356201 0 0 0 -1.5708000357176291</pose>
+    </model>
+    <model name="shelf_1">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>0.7833179235458374 2.3227524757385254 0 0 0 1.5708000357176291</pose>
+    </model>
+    <model name="shelf_2">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>8.2486696243286133 -1.5083321332931519 0 0 0 0</pose>
+    </model>
+    <model name="shelf_3">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>7.0212101936340332 -1.5661112070083618 0 0 0 1.5708000357176291</pose>
+    </model>
+    <model name="shelf_4">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>6.9280719757080078 2.2409090995788574 0 0 0 1.5708000357176291</pose>
+    </model>
+    
+    <model name="shelf_5">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>2.1045401096343994 -9.9976902008056641 0 0 0 0</pose>
+    </model>
+    <model name="shelf_6">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>0.82871150970458984 -6.2359204292297363 0 0 0 1.5708000357176291</pose>
+    </model>
+    <model name="shelf_7">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>-1.678074836730957 -11.258501052856445 0 0 0 -1.5708000357176291</pose>
+    </model>
+    <model name="shelf_8">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>8 -10 0 0 0 0</pose>
+    </model>
+    <model name="shelf_9">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>6.7930102348327637 -10.035040855407715 0 0 0 1.5708000357176291</pose>
+    </model>
+    <model name="shelf_10">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>6.7468090057373047 -6.2733316421508789 0 0 0 1.5708000357176291</pose>
+    </model>
+    <model name="shelf_11">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>14 -1.5313600301742554 0 0 0 0</pose>
+    </model>
+    <model name="shelf_12">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>12.705499649047852 2.2107007503509521 0 0 0 1.5708000357176291</pose>
+    </model>
+    <model name="shelf_13">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>10.246963500976562 -2.8080301284790039 0 0 0 -1.5708000357176291</pose>
+    </model>
+    <model name="shelf_14">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>13.865300178527832 -9.9910001754760742 0 0 0 0</pose>
+    </model>
+    <model name="shelf_15">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>10.089049339294434 -7.4722795486450195 0 0 0 -1.5708000357176291</pose>
+    </model>
+    <model name="shelf_16">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>12.559500694274902 -10.010329246520996 0 0 0 1.5708000357176291</pose>
+    </model>
+    <model name="shelf_17">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>2.1045401096343994 8.0023097991943359 0 0 0 0</pose>
+    </model>
+    <model name="shelf_18">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>0.82871150970458984 11.7640795707702637 0 0 0 1.5708000357176291</pose>
+    </model>
+    <model name="shelf_19">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>-1.678074836730957 6.7414989471435547 0 0 0 -1.5708000357176291</pose>
+    </model>
+    <model name="shelf_20">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>8 8 0 0 0 0</pose>
+    </model>
+    <model name="shelf_21">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>6.7930102348327637 7.9649591445922852 0 0 0 1.5708000357176291</pose>
+    </model>
+    <model name="shelf_22">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>6.7468090057373047 11.7266683578491211 0 0 0 1.5708000357176291</pose>
+    </model>
+    <model name="shelf_23">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>13.865300178527832 8.0089998245239258 0 0 0 0</pose>
+    </model>
+    <model name="shelf_24">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>10.089049339294434 10.5277204513549805 0 0 0 -1.5708000357176291</pose>
+    </model>
+    <model name="shelf_25">
+      <static>true</static>
+      <include>
+        <uri>model://shelf</uri>
+      </include>
+      <self_collide>false</self_collide>
+      <pose>12.559500694274902 7.989670753479004 0 0 0 1.5708000357176291</pose>
+    </model>
+    
+    <model name="bolt1">
+      <include>
+        <uri>model://bolt</uri>
+      </include>
+      <pose>0.5 0.35 1.05 0 1.5 0</pose>
+    </model>
+
+    <model name="bolt2">
+      <include>
+        <uri>model://bolt</uri>
+      </include>
+      <pose>0.25 0.63 1.05 0 -1.5 -2.82</pose>
+    </model>
+
+    <model name="bolt3">
+      <include>
+        <uri>model://bolt</uri>
+      </include>
+      <pose>0.11 0.53 1.05 0 -1.5 -1.0</pose>
+    </model>
+
+    <model name="bolt_shlef">
+      <include>
+        <uri>model://bolt</uri>
+      </include>
+      <pose>0.8 0.35 1.05 0 -1.5 -1.0</pose>
+    </model>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <include>
+        <uri>model://floor</uri>
+        <name>floor</name>
+        <pose>5 5 0 0 0 0</pose>
+      </include>
+      <self_collide>false</self_collide>
+    </model>
+
+    <model name="wall1">
+      <static>true</static>
+      <include>
+        <uri>model://wall</uri>
+        <pose>20 5 0 0 0 3.1415900000000754</pose>
+      </include>
+      <self_collide>false</self_collide>
+    </model>
+    <model name="wall2">
+      <static>true</static>
+      <include>
+        <uri>model://wall</uri>
+        <pose>0 -14 0 0 0 1.5708000357176291</pose>
+      </include>
+      <self_collide>false</self_collide>
+    </model>
+
+    
+    <light name='sun' type='directional'>
+      <pose>0 -10 10 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <intensity>1</intensity>
+      <direction>-0.5 0.10000000000000001 -0.90000000000000002</direction>
+      <diffuse>0.800000012 0.800000012 0.800000012 1</diffuse>
+      <specular>0.200000003 0.200000003 0.200000003 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <linear>0.01</linear>
+        <constant>0.90000000000000002</constant>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>0</outer_angle>
+        <falloff>0</falloff>
+      </spot>
+    </light>
+  </world>
+</sdf>
