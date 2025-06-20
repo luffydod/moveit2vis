@@ -24,7 +24,7 @@ def generate_launch_description() -> LaunchDescription:
     use_sim_time = LaunchConfiguration("use_sim_time")
     gz_verbosity = LaunchConfiguration("gz_verbosity")
     log_level = LaunchConfiguration("log_level")
-
+    
     # List of included launch descriptions
     launch_descriptions = [
         # Launch Gazebo
@@ -65,13 +65,16 @@ def generate_launch_description() -> LaunchDescription:
 
 
     # Set gz sim resource path
-    panda_desc_pkg = get_package_share_directory("panda_description")
     gz_resource_path = SetEnvironmentVariable(
         name='GZ_SIM_RESOURCE_PATH',
         value=[
             get_package_share_directory("panda_description"),
             ':',
-            '/home/dod/panda_gz_moveit2vis'
+            path.join(get_package_share_directory("panda_description"), "worlds"),
+            ':',
+            os.path.dirname(os.path.realpath(__file__)),  # 启动文件所在目录
+            ':',
+            os.getcwd()  # 当前工作目录
         ]
     )
 
@@ -100,7 +103,7 @@ def generate_launch_description() -> LaunchDescription:
         ),
     ]
 
-    return LaunchDescription(declared_arguments + [gz_resource_path] + launch_descriptions + nodes)
+    return LaunchDescription([gz_resource_path] + declared_arguments + launch_descriptions + nodes)
 
 
 def generate_declared_arguments() -> List[DeclareLaunchArgument]:
@@ -112,12 +115,12 @@ def generate_declared_arguments() -> List[DeclareLaunchArgument]:
         # World and model for Gazebo
         DeclareLaunchArgument(
             "world",
-            default_value="default.sdf",
+            default_value="arm_on_the_table.sdf",
             description="Name or filepath of world to load.",
         ),
         DeclareLaunchArgument(
             "model",
-            default_value=os.path.join(get_package_share_directory("panda_description"), "panda", "model.sdf"),
+            default_value='panda',
             description="Name or filepath of model to load.",
         ),
         # Miscellaneous
