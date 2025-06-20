@@ -600,3 +600,22 @@ ros2 topic pub /bolt1 geometry_msgs/PoseStamped "{
   }
 }"
 ```
+
+## 方向角
+
+计算`/target_pose`时通常发布在`/panda_link0`机械臂基座坐标系下（静态），考虑转换到`/panda_link8`末端执行器坐标系下会出现tf消息不完整等错误。
+
+希望利用方向角来绕z轴旋转指定角度（考虑末端执行器的初始偏转角度），同时要注意末端执行器反转z轴（绕x轴180度实现），最终对应变换代码如下：
+
+```python
+# 修改：对于Z轴方向相反的情况，需要将角度取反，并且调整欧拉角
+# 在基座坐标系下，Z轴指向上，而在末端执行器坐标系下，Z轴指向下
+# 添加PI旋转将使orientation正确面向目标
+q = quaternion_from_euler(math.pi, 0, -theta+0.3825)  # 注意角度取反，并添加X轴上的180度旋转
+target_pose.pose.orientation.x = q[0]
+target_pose.pose.orientation.y = q[1]
+target_pose.pose.orientation.z = q[2]
+target_pose.pose.orientation.w = q[3]
+```
+
+![image-20250620143637055](docs/images/image-20250620143637055.png)
