@@ -64,7 +64,7 @@ class Controller(Node):
         super().__init__('grasp_controller')
         self.subscription = self.create_subscription(
             PoseStamped,
-            '/perception/pre_grasp_pose',
+            '/perception/target_pose',
             self.listener_callback,
             10)
         self.subscription
@@ -100,9 +100,15 @@ class Controller(Node):
             self.panda_hand.set_start_state_to_current_state()
 
             if action == 'open':
-                joint_values = {"panda_finger_joint1": 0.03}
+                joint_values = {
+                    "panda_finger_joint1": 0.03, 
+                    "panda_finger_joint2": 0.03
+                    }
             elif action == 'close':
-                joint_values = {"panda_finger_joint1": 0.001}
+                joint_values = {
+                    "panda_finger_joint1": 0.001, 
+                    "panda_finger_joint2": 0.001
+                    }
             else:
                 self.logger.info("no such action")
 
@@ -117,66 +123,97 @@ class Controller(Node):
             self.logger.error(f"Error in gripper_action: {e}")
             return False
         return is_success
-
+    
+    def move_to_ready_state(self):
+        """将机械臂移动到'ready'组状态"""
+        try:
+            self.logger.info("将机械臂移动到 'ready' 初始状态")
+            self.panda_arm.set_start_state_to_current_state()
+            
+            # 使用命名的组状态 'ready'
+            self.panda_arm.set_goal_state(configuration_name="ready")
+            
+            # 规划并执行
+            result = plan_and_execute(self.panda, self.panda_arm, self.logger)
+            if result:
+                self.logger.info("已成功移动到 'ready' 初始状态")
+            else:
+                self.logger.error("移动到 'ready' 初始状态失败")
+            return result
+        except Exception as e:
+            self.logger.error(f"移动到 'ready' 状态时出错: {e}")
+            return False
+       
     def listener_callback(self, data):
 
         self.logger.info(f"Received target: {data}")
 
         try:
+            # 首先移动到预定义的ready初始位姿
+            self.logger.info("首先移动到ready初始位姿")
+            if not self.move_to_ready_state():
+                self.logger.error("无法移动到ready初始位姿，中止操作")
+                return
+
+            time.sleep(1.0)
+           
             self.logger.info("Moving to pre_grasp_pose")
 
             # Move to pre_grasp_pose
             initial_pose = copy.deepcopy(data)
+            initial_pose.pose.position.z = 0.18
             self.logger.info(f"Moving to pre_grasp_pose: x={initial_pose.pose.position.x}, y={initial_pose.pose.position.y}")
-            if not self.move_to(data):
+            if not self.move_to(initial_pose):
                 self.logger.error("Failed to move to pre_grasp_pose")
                 return
             
-            self.gripper_action("open")
-
+            time.sleep(1.0)
+            
+            if not self.gripper_action("open"):
+                self.logger.error("Failed to open gripper")
+                return
+            time.sleep(1.0)
+            
             # Move to grasp_pose
             grasp_pose = copy.deepcopy(data)
-            grasp_pose.pose.position.z -= 0.20
-            # q = quaternion_from_euler(math.pi/3, 0, 0)
-            grasp_pose.pose.orientation.x = 1.0
-            grasp_pose.pose.orientation.y = 0.0
-            grasp_pose.pose.orientation.z = 0.0
-            grasp_pose.pose.orientation.w = 0.0
+            grasp_pose.pose.position.z = 0.12
             self.logger.info(f"Moving to grasp_pose: x={grasp_pose.pose.position.x}, y={grasp_pose.pose.position.y}")
             if not self.move_to(grasp_pose):
                 self.logger.error("Failed to move to grasp_pose")
                 return
             
-            self.gripper_action("close")
-
+            time.sleep(1.0)
+            
+            if not self.gripper_action("close"):
+                self.logger.error("Failed to close gripper")
+                return
+                
+            time.sleep(1.0)
+            
             # Move to carrying height
             carrying_height_pose = copy.deepcopy(data)
-            carrying_height_pose.pose.position.z += 0.5
-            carrying_height_pose.pose.orientation.x = 0.0
-            carrying_height_pose.pose.orientation.y = 0.0
-            carrying_height_pose.pose.orientation.z = 0.0
-            carrying_height_pose.pose.orientation.w = 1.0
+            carrying_height_pose.pose.position.z = 0.3
             self.logger.info(f"Moving to carrying height: x={carrying_height_pose.pose.position.x}, y={carrying_height_pose.pose.position.y}")
             if not self.move_to(carrying_height_pose):
                 self.logger.error("Failed to move to carrying height")
                 return
 
-            # Move to target position
-            target_pose = PoseStamped()
-            target_pose.header.frame_id = "panda_link0"
-            target_pose.pose.position.x = 0.3
-            target_pose.pose.position.y = -0.3
-            target_pose.pose.position.z = 0.1
-            target_pose.pose.orientation.x = 0.0
-            target_pose.pose.orientation.y = 0.0
-            target_pose.pose.orientation.z = 0.0
-            target_pose.pose.orientation.w = 1.0
-            self.logger.info(f"Moving to target position: {target_pose.pose.position.x}, {target_pose.pose.position.y}")
-            if not self.move_to(target_pose):
+            time.sleep(1.0)
+
+            # Move to place position
+            place_pose = copy.deepcopy(data)
+            place_pose.pose.position.x -= 0.2
+            place_pose.pose.position.z += 0.2
+            self.logger.info(f"Moving to target position: {place_pose.pose.position.x}, {place_pose.pose.position.y}")
+            if not self.move_to(place_pose):
                 self.logger.error("Failed to move to target position")
                 return
 
-            self.gripper_action("open")
+            time.sleep(1.0)
+            
+            if not self.gripper_action("open"):
+                self.logger.error("Failed to open gripper")
+                return
 
         except Exception as e:
             self.logger.error(f"Pick and place operation failed: {e}")

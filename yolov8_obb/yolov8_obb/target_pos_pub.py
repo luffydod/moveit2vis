@@ -3,15 +3,13 @@
 import rclpy
 from rclpy.node import Node
 from perception_interfaces.msg import Detection2DWithDepthArray
-from geometry_msgs.msg import PoseStamped, Point
+from geometry_msgs.msg import PoseStamped, Pose
 import numpy as np
 import math
 import tf2_ros
 import tf2_geometry_msgs
 from tf2_ros import TransformException
-from geometry_msgs.msg import Quaternion
-from geometry_msgs.msg import TransformStamped
-from tf_transformations import quaternion_from_euler, quaternion_multiply
+from tf_transformations import quaternion_from_euler
 
 NAME_SPACE = "/perception"
 
@@ -29,15 +27,8 @@ class TargetPosePublisher(Node):
         # 创建发布器，发布目标位姿
         self.target_pose_publisher = self.create_publisher(
             PoseStamped,
-            f'{NAME_SPACE}/target_point',
+            f'{NAME_SPACE}/target_pose',
             10)
-        
-        # 添加预抓取位姿发布器
-        self.pre_grasp_pose_publisher = self.create_publisher(
-            PoseStamped,
-            f'{NAME_SPACE}/pre_grasp_pose',
-            10)
-            
         
         # 相机内参 (需要根据实际相机参数调整)
         self.fx = 253.93635749816895  # 焦距x
@@ -50,12 +41,12 @@ class TargetPosePublisher(Node):
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
         
         self.camera_frame = "camera_norm_link"  # 相机坐标系
-        self.target_frame = "panda_link0"  # 目标坐标系（通常是机器人基座）
+        self.base_frame = "panda_link0"  # 更改为固定的基坐标系，避免使用动态的末端执行器坐标系
         
         self.get_logger().info('目标位姿发布节点已启动')
 
     def detection_callback(self, msg):
-        """处理检测结果，提取3D位置并发布目标位姿"""
+        """处理检测结果, 提取3D位置并发布目标位姿"""
         if not msg.detections:
             self.get_logger().info('没有检测到目标')
             return
@@ -72,7 +63,7 @@ class TargetPosePublisher(Node):
         depth = detection.depth_center
         
         if math.isnan(depth) or depth <= 0:
-            # self.get_logger().warn(f'无效的深度值: {depth}')
+            self.get_logger().warn(f'无效的深度值: {depth}')
             return
         
         # 步骤1: 将像素坐标转换为标准相机坐标系（Z轴指向前方，X轴向右，Y轴向下）
@@ -83,80 +74,54 @@ class TargetPosePublisher(Node):
         
         self.get_logger().info(f'标准相机坐标系: x={x_std:.3f}, y={y_std:.3f}, z={z_std:.3f}')
         
-        # 步骤2：计算标准相机坐标系下的目标位姿
+        # 创建相机坐标系下的目标位姿
+        camera_pose = PoseStamped()
+        camera_pose.header.stamp = msg.header.stamp  # 使用检测消息的时间戳
+        camera_pose.header.frame_id = self.camera_frame
+        camera_pose.pose.position.x = x_std
+        camera_pose.pose.position.y = y_std
+        camera_pose.pose.position.z = z_std
         
-        # 创建目标位姿消息
-        target_pose = PoseStamped()
-        target_pose.header.stamp = self.get_clock().now().to_msg()
-        target_pose.header.frame_id = self.camera_frame
+        self.get_logger().info(f'目标方向角: theta={theta:.3f} rad')
         
-        # 设置位置
-        target_pose.pose.position.x = x_std
-        target_pose.pose.position.y = y_std
-        target_pose.pose.position.z = z_std
-        
-        # 计算四元数 - 根据theta角度构建绕z轴旋转theta的四元数
-        q = quaternion_from_euler(0, 0, theta)
-        target_pose.pose.orientation.x = q[0]
-        target_pose.pose.orientation.y = q[1]
-        target_pose.pose.orientation.z = q[2]
-        target_pose.pose.orientation.w = q[3]
-        
-        # 尝试将位姿从相机坐标系转换到目标坐标系(机器人基座)
         try:
-            # 获取从相机坐标系到目标坐标系的变换
+            # 直接从相机坐标系转换到基坐标系
             transform = self.tf_buffer.lookup_transform(
-                self.target_frame,           # 目标坐标系
-                self.camera_frame,           # 源坐标系
-                rclpy.time.Time(),           # 获取最新可用的变换
-                timeout=rclpy.duration.Duration(seconds=1.0))  # 超时时间
+                self.base_frame,
+                self.camera_frame,
+                msg.header.stamp,  # 使用检测消息的时间戳
+                timeout=rclpy.duration.Duration(seconds=0.5))
             
-            # 使用tf2_geometry_msgs的do_transform_pose函数进行正确的坐标变换
-            t_pose = target_pose.pose
-            transformed_pose = PoseStamped()
-            transformed_pose.header.stamp = self.get_clock().now().to_msg()
-            transformed_pose.header.frame_id = self.target_frame
+            # 执行位姿变换
+            base_pose = tf2_geometry_msgs.do_transform_pose(
+                camera_pose.pose, transform
+            )
             
-            transformed_pose.pose = tf2_geometry_msgs.do_transform_pose(t_pose, transform)
+            target_pose = PoseStamped()
+            target_pose.header.stamp = msg.header.stamp
+            target_pose.header.frame_id = self.base_frame
+            target_pose.pose = base_pose
             
-            # 发布转换后的目标位姿
-            self.target_pose_publisher.publish(transformed_pose)
+            # 修改：对于Z轴方向相反的情况，需要将角度取反，并且调整欧拉角
+            # 在基座坐标系下，Z轴指向上，而在末端执行器坐标系下，Z轴指向下
+            # 添加PI旋转将使orientation正确面向目标
+            q = quaternion_from_euler(math.pi, 0, -theta+0.3825)  # 注意角度取反，并添加X轴上的180度旋转
+            target_pose.pose.orientation.x = q[0]
+            target_pose.pose.orientation.y = q[1]
+            target_pose.pose.orientation.z = q[2]
+            target_pose.pose.orientation.w = q[3]
             
-            # 计算垂直抓取姿态
-            self.calculate_grasp_poses(transformed_pose)
+            # 发布基坐标系下的目标位姿
+            self.target_pose_publisher.publish(target_pose)
             
-            self.get_logger().info(f'目标坐标系下的位置: x={transformed_pose.pose.position.x:.3f}, ' +
-                                  f'y={transformed_pose.pose.position.y:.3f}, z={transformed_pose.pose.position.z:.3f}')
+            self.get_logger().info(f'基坐标系下的位置: x={base_pose.position.x:.3f}, ' +
+                                   f'y={base_pose.position.y:.3f}, z={base_pose.position.z:.3f}')
             
         except TransformException as ex:
             self.get_logger().warn(f'无法获取坐标转换: {ex}')
-            # 如果转换失败，仍然发布相机坐标系下的位姿
-            self.target_pose_publisher.publish(target_pose)
-
-    def calculate_grasp_poses(self, target_pose):
-        """计算基于目标位姿的抓取姿态"""
-        # 1. 计算预抓取位姿 (在物体上方)
-        pre_grasp = PoseStamped()
-        pre_grasp.header = target_pose.header
-        pre_grasp.pose.position.x = target_pose.pose.position.x
-        pre_grasp.pose.position.y = target_pose.pose.position.y
-        pre_grasp.pose.position.z = target_pose.pose.position.z + 0.33  # 预抓取高度，在物体上方30cm
-        
-        q = quaternion_from_euler(math.pi/2, 0, 0)
-        
-        # pre_grasp.pose.orientation.x = q[0]
-        # pre_grasp.pose.orientation.y = q[1]
-        # pre_grasp.pose.orientation.z = q[2]
-        # pre_grasp.pose.orientation.w = q[3]
-        pre_grasp.pose.orientation.x = 0.0
-        pre_grasp.pose.orientation.y = 0.0
-        pre_grasp.pose.orientation.z = 0.0
-        pre_grasp.pose.orientation.w = 1.0
-        
-        # 发布预抓取位姿
-        self.pre_grasp_pose_publisher.publish(pre_grasp)
-        self.get_logger().info(f'已发布预抓取位姿: 位置(x={pre_grasp.pose.position.x:.3f}, ' +
-                              f'y={pre_grasp.pose.position.y:.3f}, z={pre_grasp.pose.position.z:.3f})')
+            # 如果转换失败，发布相机坐标系下的位姿
+            self.target_pose_publisher.publish(camera_pose)
+            self.get_logger().info('发布相机坐标系下的位姿')
 
 def main():
     rclpy.init()
