@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <model name="shelf">
+    <static>true</static>
+    <link name="link">
+      <!-- <visual name="bottom_shelf_visual">
+        <pose>-0.625 1.25 0.175 0 -0 0</pose>
+        <geometry>
+          <box>
+            <size>1.25 2.5 0.0375</size>
+          </box>
+        </geometry>
+        <material>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+            <specular>1 1 1 1</specular>
+            <emissive>0 0 0 1</emissive>
+        </material>
+      </visual> -->
+      <collision name='bottom_shelf_collision'>
+        <pose>-0.625 1.25 0.175 0 -0 0</pose>
+        <geometry>
+          <box>
+            <size>1.25 2.5 0.0375</size>
+          </box>
+        </geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>0.5</mu>
+              <mu2>0.4</mu2>
+            </ode>
+            <torsional>
+              <ode/>
+            </torsional>
+          </friction>
+          <contact>
+            <ode>
+              <kp>1e+09</kp>
+              <kd>10</kd>
+            </ode>
+          </contact>
+          <bounce>
+            <restitution_coefficient>0.1</restitution_coefficient>
+            <threshold>0.1</threshold>
+          </bounce>
+        </surface>
+        <max_contacts>10</max_contacts>
+      </collision>
+
+      <visual name="middle_shelf_visual">
+        <pose>-0.625 1.25 1 0 -0 0</pose>
+        <geometry>
+          <box>
+            <size>1.25 2.5 0.0375</size>
+          </box>
+        </geometry>
+        <material>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+            <specular>1 1 1 1</specular>
+            <emissive>0 0 0 1</emissive>
+        </material>
+      </visual>
+      <collision name='middle_shelf_collision'>
+        <!-- <pose>-0.5 1 0.8 0 -0 0</pose> -->
+        <pose>-0.625 1.25 1 0 -0 0</pose>
+        <geometry>
+          <box>
+            <size>1.25 2.5 0.0375</size>
+          </box>
+        </geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>0.5</mu>
+              <mu2>0.4</mu2>
+            </ode>
+            <torsional>
+              <ode/>
+            </torsional>
+          </friction>
+          <contact>
+            <ode>
+              <kp>1e+09</kp>
+              <kd>10</kd>
+            </ode>
+          </contact>
+          <bounce>
+            <restitution_coefficient>0.1</restitution_coefficient>
+            <threshold>0.1</threshold>
+          </bounce>
+        </surface>
+        <max_contacts>10</max_contacts>
+      </collision>
+
+      <!-- <visual name="top_shelf_visual">
+        <pose>-0.625 1.25 1.94 0 -0 0</pose>
+        <geometry>
+          <box>
+            <size>1.25 2.5 0.0375</size>
+          </box>
+        </geometry>
+        <material>
+            <ambient>1 1 1 1</ambient>
+            <diffuse>1 1 1 1</diffuse>
+            <specular>1 1 1 1</specular>
+            <emissive>0 0 0 1</emissive>
+        </material>
+      </visual> -->
+      <collision name='top_shelf_collision'>
+        <pose>-0.625 1.25 1.94 0 -0 0</pose>
+        <geometry>
+          <box>
+            <size>1.25 2.5 0.0375</size>
+          </box>
+        </geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>0.5</mu>
+              <mu2>0.4</mu2>
+            </ode>
+            <torsional>
+              <ode/>
+            </torsional>
+          </friction>
+          <contact>
+            <ode>
+              <kp>1e+09</kp>
+              <kd>10</kd>
+            </ode>
+          </contact>
+          <bounce>
+            <restitution_coefficient>0.1</restitution_coefficient>
+            <threshold>0.1</threshold>
+          </bounce>
+        </surface>
+        <max_contacts>10</max_contacts>
+      </collision>
+
+      <visual name="visual_shelf">
+        <geometry>
+          <mesh>
+            <uri>model://shelf/meshes/shelf.dae</uri>
+            <scale>1 1 1</scale>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>
